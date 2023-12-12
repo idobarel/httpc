@@ -7,5 +7,5 @@ fi
 echo "Compiling (static) binary using $CC to $name..."
 $CC -o $name src/*.c -static
 echo "Done. running 'strip -s' on $name..."
-strip -s infs
+strip -s $name
 echo "Done!\nrun ./$name -h"
