@@ -1,6 +1,6 @@
 name="$1"
 if [ "$#" -ne 1 ]; then
-	name="infs"
+	name="httpc"
 	echo "Output file is $name"
 fi
 
