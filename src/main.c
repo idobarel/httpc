@@ -46,14 +46,30 @@ int main(int argc, char* argv[]){
        };
     connect(sock, (struct sockaddr *)&addr, sizeof(addr));
     char req[256];
-    sprintf(req, "GET /%s HTTP/1.1\n\nHost: %s", url->path, url->host);
+    sprintf(req, "GET /%s HTTP/1.1\r\nHost: %s\r\nUser-Agent: curl/7.68.0\r\nAccept: */*\r\nConnection: close\r\n\r\n", url->path, url->host);
     send(sock, req, strlen(req), 0);
-    char resp[256] = { 0 };
-    recv(sock, &resp, 256, 0);
-    write(2, resp, 256); // write to stderr for redirecting file output
     char buffer[1024] = { 0 };
-    while (recv(sock, buffer, 1024, 0) > 0) {
-        write(1, buffer, 1024);
-    }
+    char *resp = (char *)malloc(0);
+    int num_recvd = 0;
+    while((num_recvd = recv(sock, buffer, 1024, 0)) > 0)
+	{
+        buffer[num_recvd] = '\0';
+        int i = strlen(resp)+num_recvd + 1;
+        char *tmp = (char *)malloc(i);
+        strcpy(tmp, resp);
+        sprintf(tmp, "%s%s", resp, buffer);
+        resp = tmp+3;
+	}
+    char *header_delimiter = "\r\n\r\n";
+    char* body = strstr(resp, header_delimiter);
+    int length = body - resp;
+    char headers[length];
+    memcpy(headers, resp, length);
+    headers[length] = '\0';
+    body = body + strlen(header_delimiter);
+    write(2, headers, strlen(headers));
+    write(2, "\n\n", strlen("\n\n"));
+    write(1, body, strlen(body));
+    close(sock);
     parsed_url_free(url);
 }
